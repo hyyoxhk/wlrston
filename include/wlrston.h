@@ -95,15 +95,9 @@ void server_new_output(struct wl_listener *listener, void *data);
 
 void server_new_xdg_surface(struct wl_listener *listener, void *data);
 
-void server_cursor_motion(struct wl_listener *listener, void *data);
+void cursor_init(struct wlrston_server *server);
 
-void server_cursor_motion_absolute(struct wl_listener *listener, void *data);
-
-void server_cursor_button(struct wl_listener *listener, void *data);
-
-void server_cursor_axis(struct wl_listener *listener, void *data);
-
-void server_cursor_frame(struct wl_listener *listener, void *data);
+void cursor_finish(struct wlrston_server *server);
 
 void server_new_input(struct wl_listener *listener, void *data);
 

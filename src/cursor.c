@@ -148,7 +148,7 @@ static void process_cursor_motion(struct wlrston_server *server, uint32_t time) 
 }
 
 
-void server_cursor_motion(struct wl_listener *listener, void *data) {
+static void server_cursor_motion(struct wl_listener *listener, void *data) {
 	/* This event is forwarded by the cursor when a pointer emits a _relative_
 	 * pointer motion event (i.e. a delta) */
 	struct wlrston_server *server =
@@ -165,7 +165,7 @@ void server_cursor_motion(struct wl_listener *listener, void *data) {
 }
 
 
-void server_cursor_motion_absolute(struct wl_listener *listener, void *data) {
+static void server_cursor_motion_absolute(struct wl_listener *listener, void *data) {
 	/* This event is forwarded by the cursor when a pointer emits an _absolute_
 	 * motion event, from 0..1 on each axis. This happens, for example, when
 	 * wlroots is running under a Wayland window rather than KMS+DRM, and you
@@ -181,7 +181,7 @@ void server_cursor_motion_absolute(struct wl_listener *listener, void *data) {
 }
 
 
-void server_cursor_button(struct wl_listener *listener, void *data) {
+static void server_cursor_button(struct wl_listener *listener, void *data) {
 	/* This event is forwarded by the cursor when a pointer emits a button
 	 * event. */
 	struct wlrston_server *server =
@@ -204,7 +204,7 @@ void server_cursor_button(struct wl_listener *listener, void *data) {
 }
 
 
-void server_cursor_axis(struct wl_listener *listener, void *data) {
+static void server_cursor_axis(struct wl_listener *listener, void *data) {
 	/* This event is forwarded by the cursor when a pointer emits an axis event,
 	 * for example when you move the scroll wheel. */
 	struct wlrston_server *server =
@@ -216,7 +216,7 @@ void server_cursor_axis(struct wl_listener *listener, void *data) {
 			event->delta_discrete, event->source);
 }
 
-void server_cursor_frame(struct wl_listener *listener, void *data) {
+static void server_cursor_frame(struct wl_listener *listener, void *data) {
 	/* This event is forwarded by the cursor when a pointer emits an frame
 	 * event. Frame events are sent after regular pointer events to group
 	 * multiple events together. For instance, two axis events may happen at the
@@ -225,4 +225,52 @@ void server_cursor_frame(struct wl_listener *listener, void *data) {
 		wl_container_of(listener, server, cursor_frame);
 	/* Notify the client with pointer focus of the frame event. */
 	wlr_seat_pointer_notify_frame(server->seat);
+}
+
+void cursor_init(struct wlrston_server *server)
+{
+	/*
+	 * Creates a cursor, which is a wlroots utility for tracking the cursor
+	 * image shown on screen.
+	 */
+	server->cursor = wlr_cursor_create();
+	wlr_cursor_attach_output_layout(server->cursor, server->output_layout);
+
+	/* Creates an xcursor manager, another wlroots utility which loads up
+	 * Xcursor themes to source cursor images from and makes sure that cursor
+	 * images are available at all scale factors on the screen (necessary for
+	 * HiDPI support). We add a cursor theme at scale factor 1 to begin with. */
+	server->cursor_mgr = wlr_xcursor_manager_create(NULL, 24);
+	wlr_xcursor_manager_load(server->cursor_mgr, 1);
+
+	/*
+	 * wlr_cursor *only* displays an image on screen. It does not move around
+	 * when the pointer moves. However, we can attach input devices to it, and
+	 * it will generate aggregate events for all of them. In these events, we
+	 * can choose how we want to process them, forwarding them to clients and
+	 * moving the cursor around. More detail on this process is described in my
+	 * input handling blog post:
+	 *
+	 * https://drewdevault.com/2018/07/17/Input-handling-in-wlroots.html
+	 *
+	 * And more comments are sprinkled throughout the notify functions above.
+	 */
+	server->cursor_mode = WLRSTON_CURSOR_PASSTHROUGH;
+	server->cursor_motion.notify = server_cursor_motion;
+	wl_signal_add(&server->cursor->events.motion, &server->cursor_motion);
+	server->cursor_motion_absolute.notify = server_cursor_motion_absolute;
+	wl_signal_add(&server->cursor->events.motion_absolute,
+			&server->cursor_motion_absolute);
+	server->cursor_button.notify = server_cursor_button;
+	wl_signal_add(&server->cursor->events.button, &server->cursor_button);
+	server->cursor_axis.notify = server_cursor_axis;
+	wl_signal_add(&server->cursor->events.axis, &server->cursor_axis);
+	server->cursor_frame.notify = server_cursor_frame;
+	wl_signal_add(&server->cursor->events.frame, &server->cursor_frame);
+}
+
+void cursor_finish(struct wlrston_server *server)
+{
+	wlr_xcursor_manager_destroy(server->cursor_mgr);
+	wlr_cursor_destroy(server->cursor);
 }

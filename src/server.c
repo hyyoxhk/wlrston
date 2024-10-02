@@ -83,45 +83,7 @@ void server_init(struct wlrston_server *server)
 	wl_signal_add(&server->xdg_shell->events.new_surface,
 			&server->new_xdg_surface);
 
-	/*
-	 * Creates a cursor, which is a wlroots utility for tracking the cursor
-	 * image shown on screen.
-	 */
-	server->cursor = wlr_cursor_create();
-	wlr_cursor_attach_output_layout(server->cursor, server->output_layout);
-
-	/* Creates an xcursor manager, another wlroots utility which loads up
-	 * Xcursor themes to source cursor images from and makes sure that cursor
-	 * images are available at all scale factors on the screen (necessary for
-	 * HiDPI support). We add a cursor theme at scale factor 1 to begin with. */
-	server->cursor_mgr = wlr_xcursor_manager_create(NULL, 24);
-	wlr_xcursor_manager_load(server->cursor_mgr, 1);
-
-	/*
-	 * wlr_cursor *only* displays an image on screen. It does not move around
-	 * when the pointer moves. However, we can attach input devices to it, and
-	 * it will generate aggregate events for all of them. In these events, we
-	 * can choose how we want to process them, forwarding them to clients and
-	 * moving the cursor around. More detail on this process is described in my
-	 * input handling blog post:
-	 *
-	 * https://drewdevault.com/2018/07/17/Input-handling-in-wlroots.html
-	 *
-	 * And more comments are sprinkled throughout the notify functions above.
-	 */
-	server->cursor_mode = WLRSTON_CURSOR_PASSTHROUGH;
-	server->cursor_motion.notify = server_cursor_motion;
-	wl_signal_add(&server->cursor->events.motion, &server->cursor_motion);
-	server->cursor_motion_absolute.notify = server_cursor_motion_absolute;
-	wl_signal_add(&server->cursor->events.motion_absolute,
-			&server->cursor_motion_absolute);
-	server->cursor_button.notify = server_cursor_button;
-	wl_signal_add(&server->cursor->events.button, &server->cursor_button);
-	server->cursor_axis.notify = server_cursor_axis;
-	wl_signal_add(&server->cursor->events.axis, &server->cursor_axis);
-	server->cursor_frame.notify = server_cursor_frame;
-	wl_signal_add(&server->cursor->events.frame, &server->cursor_frame);
-
+	cursor_init(server);
 	/*
 	 * Configures a seat, which is a single "seat" at which a user sits and
 	 * operates the computer. This conceptually includes up to one keyboard,
@@ -144,9 +106,8 @@ void server_finish(struct wlrston_server *server)
 {
 	/* Once wl_display_run returns, we shut down the server. */
 	wl_display_destroy_clients(server->wl_display);
+	cursor_finish(server);
 	wlr_scene_node_destroy(&server->scene->tree.node);
-	wlr_xcursor_manager_destroy(server->cursor_mgr);
-	wlr_cursor_destroy(server->cursor);
 	wlr_allocator_destroy(server->allocator);
 	wlr_renderer_destroy(server->renderer);
 	wlr_backend_destroy(server->backend);
