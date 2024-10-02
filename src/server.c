@@ -108,6 +108,7 @@ void server_finish(struct wlrston_server *server)
 	wl_display_destroy_clients(server->wl_display);
 	cursor_finish(server);
 	wlr_scene_node_destroy(&server->scene->tree.node);
+	wlr_output_layout_destroy(server->output_layout);
 	wlr_allocator_destroy(server->allocator);
 	wlr_renderer_destroy(server->renderer);
 	wlr_backend_destroy(server->backend);
