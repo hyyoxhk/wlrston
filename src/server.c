@@ -83,30 +83,32 @@ void server_init(struct wlrston_server *server)
 	wl_signal_add(&server->xdg_shell->events.new_surface,
 			&server->new_xdg_surface);
 
-	cursor_init(server);
+	seat_init(server);
+
+	// cursor_init(server);
 	/*
 	 * Configures a seat, which is a single "seat" at which a user sits and
 	 * operates the computer. This conceptually includes up to one keyboard,
 	 * pointer, touch, and drawing tablet device. We also rig up a listener to
 	 * let us know when new input devices are available on the backend.
 	 */
-	wl_list_init(&server->keyboards);
-	server->new_input.notify = server_new_input;
-	wl_signal_add(&server->backend->events.new_input, &server->new_input);
-	server->seat = wlr_seat_create(server->wl_display, "seat0");
-	server->request_cursor.notify = seat_request_cursor;
-	wl_signal_add(&server->seat->events.request_set_cursor,
-			&server->request_cursor);
-	server->request_set_selection.notify = seat_request_set_selection;
-	wl_signal_add(&server->seat->events.request_set_selection,
-			&server->request_set_selection);
+	// wl_list_init(&server->keyboards);
+	// server->new_input.notify = server_new_input;
+	// wl_signal_add(&server->backend->events.new_input, &server->new_input);
+	// server->seat = wlr_seat_create(server->wl_display, "seat0");
+	// server->request_cursor.notify = seat_request_cursor;
+	// wl_signal_add(&server->seat->events.request_set_cursor,
+	// 		&server->request_cursor);
+	// server->request_set_selection.notify = seat_request_set_selection;
+	// wl_signal_add(&server->seat->events.request_set_selection,
+	// 		&server->request_set_selection);
 }
 
 void server_finish(struct wlrston_server *server)
 {
 	/* Once wl_display_run returns, we shut down the server. */
 	wl_display_destroy_clients(server->wl_display);
-	cursor_finish(server);
+	cursor_finish(&server->seat);
 	wlr_scene_node_destroy(&server->scene->tree.node);
 	wlr_output_layout_destroy(server->output_layout);
 	wlr_allocator_destroy(server->allocator);
