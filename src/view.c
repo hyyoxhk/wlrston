@@ -14,7 +14,8 @@ void focus_view(struct wlrston_view *view, struct wlr_surface *surface) {
 		return;
 	}
 	struct wlrston_server *server = view->server;
-	struct wlr_seat *seat = server->seat;
+	struct wlrston_seat *wlrston_seat = &server->seat;
+	struct wlr_seat *seat = wlrston_seat->seat;
 	struct wlr_surface *prev_surface = seat->keyboard_state.focused_surface;
 	if (prev_surface == surface) {
 		/* Don't re-focus an already focused surface. */

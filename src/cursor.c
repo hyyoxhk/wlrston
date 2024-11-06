@@ -36,20 +36,27 @@ static struct wlrston_view *desktop_view_at(
 }
 
 void reset_cursor_mode(struct wlrston_server *server) {
+	struct wlrston_seat *seat = &server->seat;
+
 	/* Reset the cursor mode to passthrough. */
+
 	server->cursor_mode = WLRSTON_CURSOR_PASSTHROUGH;
-	server->grabbed_view = NULL;
+	seat->server->grabbed_view = NULL;
 }
 
 static void process_cursor_move(struct wlrston_server *server, uint32_t time) {
+	struct wlrston_seat *seat = &server->seat;
+
 	/* Move the grabbed view to the new position. */
 	struct wlrston_view *view = server->grabbed_view;
-	view->x = server->cursor->x - server->grab_x;
-	view->y = server->cursor->y - server->grab_y;
+	view->x = seat->cursor->x - seat->server->grab_x;
+	view->y = seat->cursor->y - seat->server->grab_y;
 	wlr_scene_node_set_position(&view->scene_tree->node, view->x, view->y);
 }
 
 static void process_cursor_resize(struct wlrston_server *server, uint32_t time) {
+	struct wlrston_seat *seat = &server->seat;
+
 	/*
 	 * Resizing the grabbed view can be a little bit complicated, because we
 	 * could be resizing from any corner or edge. This not only resizes the view
@@ -61,8 +68,8 @@ static void process_cursor_resize(struct wlrston_server *server, uint32_t time) 
 	 * commit any movement that was prepared.
 	 */
 	struct wlrston_view *view = server->grabbed_view;
-	double border_x = server->cursor->x - server->grab_x;
-	double border_y = server->cursor->y - server->grab_y;
+	double border_x = seat->cursor->x - server->grab_x;
+	double border_y = seat->cursor->y - server->grab_y;
 	int new_left = server->grab_geobox.x;
 	int new_right = server->grab_geobox.x + server->grab_geobox.width;
 	int new_top = server->grab_geobox.y;
@@ -103,7 +110,9 @@ static void process_cursor_resize(struct wlrston_server *server, uint32_t time) 
 }
 
 
-static void process_cursor_motion(struct wlrston_server *server, uint32_t time) {
+static void process_cursor_motion(struct wlrston_seat *seat, uint32_t time) {
+	struct wlrston_server *server = seat->server;
+
 	/* If the mode is non-passthrough, delegate to those functions. */
 	if (server->cursor_mode == WLRSTON_CURSOR_MOVE) {
 		process_cursor_move(server, time);
@@ -115,16 +124,16 @@ static void process_cursor_motion(struct wlrston_server *server, uint32_t time) 
 
 	/* Otherwise, find the view under the pointer and send the event along. */
 	double sx, sy;
-	struct wlr_seat *seat = server->seat;
+	struct wlr_seat *wlr_seat = seat->seat;
 	struct wlr_surface *surface = NULL;
 	struct wlrston_view *view = desktop_view_at(server,
-			server->cursor->x, server->cursor->y, &surface, &sx, &sy);
+			seat->cursor->x, seat->cursor->y, &surface, &sx, &sy);
 	if (!view) {
 		/* If there's no view under the cursor, set the cursor image to a
 		 * default. This is what makes the cursor image appear when you move it
 		 * around the screen, not over any views. */
 		wlr_xcursor_manager_set_cursor_image(
-				server->cursor_mgr, "left_ptr", server->cursor);
+				seat->xcursor_mgr, "left_ptr", seat->cursor);
 	}
 	if (surface) {
 		/*
@@ -138,12 +147,12 @@ static void process_cursor_motion(struct wlrston_server *server, uint32_t time) 
 		 * the surface has already has pointer focus or if the client is already
 		 * aware of the coordinates passed.
 		 */
-		wlr_seat_pointer_notify_enter(seat, surface, sx, sy);
-		wlr_seat_pointer_notify_motion(seat, time, sx, sy);
+		wlr_seat_pointer_notify_enter(wlr_seat, surface, sx, sy);
+		wlr_seat_pointer_notify_motion(wlr_seat, time, sx, sy);
 	} else {
 		/* Clear pointer focus so future button events and such are not sent to
 		 * the last client to have the cursor over it. */
-		wlr_seat_pointer_clear_focus(seat);
+		wlr_seat_pointer_clear_focus(wlr_seat);
 	}
 }
 
@@ -151,17 +160,17 @@ static void process_cursor_motion(struct wlrston_server *server, uint32_t time) 
 static void server_cursor_motion(struct wl_listener *listener, void *data) {
 	/* This event is forwarded by the cursor when a pointer emits a _relative_
 	 * pointer motion event (i.e. a delta) */
-	struct wlrston_server *server =
-		wl_container_of(listener, server, cursor_motion);
+	struct wlrston_seat *seat =
+		wl_container_of(listener, seat, cursor_motion);
 	struct wlr_pointer_motion_event *event = data;
 	/* The cursor doesn't move unless we tell it to. The cursor automatically
 	 * handles constraining the motion to the output layout, as well as any
 	 * special configuration applied for the specific input device which
 	 * generated the event. You can pass NULL for the device if you want to move
 	 * the cursor around without any input. */
-	wlr_cursor_move(server->cursor, &event->pointer->base,
+	wlr_cursor_move(seat->cursor, &event->pointer->base,
 			event->delta_x, event->delta_y);
-	process_cursor_motion(server, event->time_msec);
+	process_cursor_motion(seat, event->time_msec);
 }
 
 
@@ -172,28 +181,30 @@ static void server_cursor_motion_absolute(struct wl_listener *listener, void *da
 	 * move the mouse over the window. You could enter the window from any edge,
 	 * so we have to warp the mouse there. There is also some hardware which
 	 * emits these events. */
-	struct wlrston_server *server =
-		wl_container_of(listener, server, cursor_motion_absolute);
+	struct wlrston_seat *seat =
+		wl_container_of(listener, seat, cursor_motion_absolute);
 	struct wlr_pointer_motion_absolute_event *event = data;
-	wlr_cursor_warp_absolute(server->cursor, &event->pointer->base, event->x,
+	wlr_cursor_warp_absolute(seat->cursor, &event->pointer->base, event->x,
 		event->y);
-	process_cursor_motion(server, event->time_msec);
+	process_cursor_motion(seat, event->time_msec);
 }
 
 
 static void server_cursor_button(struct wl_listener *listener, void *data) {
 	/* This event is forwarded by the cursor when a pointer emits a button
 	 * event. */
-	struct wlrston_server *server =
-		wl_container_of(listener, server, cursor_button);
+	struct wlrston_seat *seat =
+		wl_container_of(listener, seat, cursor_button);
+	struct wlrston_server *server = seat->server;
+
 	struct wlr_pointer_button_event *event = data;
 	/* Notify the client with pointer focus that a button press has occurred */
-	wlr_seat_pointer_notify_button(server->seat,
+	wlr_seat_pointer_notify_button(seat->seat,
 			event->time_msec, event->button, event->state);
 	double sx, sy;
 	struct wlr_surface *surface = NULL;
 	struct wlrston_view *view = desktop_view_at(server,
-			server->cursor->x, server->cursor->y, &surface, &sx, &sy);
+			seat->cursor->x, seat->cursor->y, &surface, &sx, &sy);
 	if (event->state == WLR_BUTTON_RELEASED) {
 		/* If you released any buttons, we exit interactive move/resize mode. */
 		reset_cursor_mode(server);
@@ -207,11 +218,11 @@ static void server_cursor_button(struct wl_listener *listener, void *data) {
 static void server_cursor_axis(struct wl_listener *listener, void *data) {
 	/* This event is forwarded by the cursor when a pointer emits an axis event,
 	 * for example when you move the scroll wheel. */
-	struct wlrston_server *server =
-		wl_container_of(listener, server, cursor_axis);
+	struct wlrston_seat *seat =
+		wl_container_of(listener, seat, cursor_axis);
 	struct wlr_pointer_axis_event *event = data;
 	/* Notify the client with pointer focus of the axis event. */
-	wlr_seat_pointer_notify_axis(server->seat,
+	wlr_seat_pointer_notify_axis(seat->seat,
 			event->time_msec, event->orientation, event->delta,
 			event->delta_discrete, event->source);
 }
@@ -221,27 +232,20 @@ static void server_cursor_frame(struct wl_listener *listener, void *data) {
 	 * event. Frame events are sent after regular pointer events to group
 	 * multiple events together. For instance, two axis events may happen at the
 	 * same time, in which case a frame event won't be sent in between. */
-	struct wlrston_server *server =
-		wl_container_of(listener, server, cursor_frame);
+	struct wlrston_seat *seat =
+		wl_container_of(listener, seat, cursor_frame);
 	/* Notify the client with pointer focus of the frame event. */
-	wlr_seat_pointer_notify_frame(server->seat);
+	wlr_seat_pointer_notify_frame(seat->seat);
 }
 
-void cursor_init(struct wlrston_server *server)
+void cursor_init(struct wlrston_seat *seat)
 {
-	/*
-	 * Creates a cursor, which is a wlroots utility for tracking the cursor
-	 * image shown on screen.
-	 */
-	server->cursor = wlr_cursor_create();
-	wlr_cursor_attach_output_layout(server->cursor, server->output_layout);
-
 	/* Creates an xcursor manager, another wlroots utility which loads up
 	 * Xcursor themes to source cursor images from and makes sure that cursor
 	 * images are available at all scale factors on the screen (necessary for
 	 * HiDPI support). We add a cursor theme at scale factor 1 to begin with. */
-	server->cursor_mgr = wlr_xcursor_manager_create(NULL, 24);
-	wlr_xcursor_manager_load(server->cursor_mgr, 1);
+	seat->xcursor_mgr = wlr_xcursor_manager_create(NULL, 24);
+	wlr_xcursor_manager_load(seat->xcursor_mgr, 1);
 
 	/*
 	 * wlr_cursor *only* displays an image on screen. It does not move around
@@ -255,22 +259,27 @@ void cursor_init(struct wlrston_server *server)
 	 *
 	 * And more comments are sprinkled throughout the notify functions above.
 	 */
-	server->cursor_mode = WLRSTON_CURSOR_PASSTHROUGH;
-	server->cursor_motion.notify = server_cursor_motion;
-	wl_signal_add(&server->cursor->events.motion, &server->cursor_motion);
-	server->cursor_motion_absolute.notify = server_cursor_motion_absolute;
-	wl_signal_add(&server->cursor->events.motion_absolute,
-			&server->cursor_motion_absolute);
-	server->cursor_button.notify = server_cursor_button;
-	wl_signal_add(&server->cursor->events.button, &server->cursor_button);
-	server->cursor_axis.notify = server_cursor_axis;
-	wl_signal_add(&server->cursor->events.axis, &server->cursor_axis);
-	server->cursor_frame.notify = server_cursor_frame;
-	wl_signal_add(&server->cursor->events.frame, &server->cursor_frame);
+	seat->cursor_motion.notify = server_cursor_motion;
+	wl_signal_add(&seat->cursor->events.motion, &seat->cursor_motion);
+	seat->cursor_motion_absolute.notify = server_cursor_motion_absolute;
+	wl_signal_add(&seat->cursor->events.motion_absolute,
+			&seat->cursor_motion_absolute);
+	seat->cursor_button.notify = server_cursor_button;
+	wl_signal_add(&seat->cursor->events.button, &seat->cursor_button);
+	seat->cursor_axis.notify = server_cursor_axis;
+	wl_signal_add(&seat->cursor->events.axis, &seat->cursor_axis);
+	seat->cursor_frame.notify = server_cursor_frame;
+	wl_signal_add(&seat->cursor->events.frame, &seat->cursor_frame);
+
+	seat->request_cursor.notify = seat_request_cursor;
+	wl_signal_add(&seat->seat->events.request_set_cursor,
+			&seat->request_cursor);
+	seat->request_set_selection.notify = seat_request_set_selection;
+	wl_signal_add(&seat->seat->events.request_set_selection,
+			&seat->request_set_selection);
 }
 
-void cursor_finish(struct wlrston_server *server)
+void cursor_finish(struct wlrston_seat *seat)
 {
-	wlr_xcursor_manager_destroy(server->cursor_mgr);
-	wlr_cursor_destroy(server->cursor);
+	wlr_xcursor_manager_destroy(seat->xcursor_mgr);
 }

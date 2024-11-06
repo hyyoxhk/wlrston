@@ -32,6 +32,33 @@ enum wlrston_cursor_mode {
 	WLRSTON_CURSOR_RESIZE,
 };
 
+struct wlrston_input {
+	struct wlr_input_device *device;
+	struct wlrston_seat *seat;
+	struct wl_listener destroy;
+	struct wl_list link; /* seat::input_list */
+};
+
+struct wlrston_seat {
+	struct wlrston_server *server;
+	struct wlr_seat *seat;
+
+	struct wlr_cursor *cursor;
+	struct wlr_xcursor_manager *xcursor_mgr;
+
+	struct wl_list input_list;
+	struct wl_listener new_input;
+
+	struct wl_listener cursor_motion;
+	struct wl_listener cursor_motion_absolute;
+	struct wl_listener cursor_button;
+	struct wl_listener cursor_axis;
+	struct wl_listener cursor_frame;
+
+	struct wl_listener request_cursor;
+	struct wl_listener request_set_selection;
+};
+
 struct wlrston_server {
 	struct wl_display *wl_display;
 	struct wlr_backend *backend;
@@ -43,19 +70,8 @@ struct wlrston_server {
 	struct wl_listener new_xdg_surface;
 	struct wl_list views;
 
-	struct wlr_cursor *cursor;
-	struct wlr_xcursor_manager *cursor_mgr;
-	struct wl_listener cursor_motion;
-	struct wl_listener cursor_motion_absolute;
-	struct wl_listener cursor_button;
-	struct wl_listener cursor_axis;
-	struct wl_listener cursor_frame;
+	struct wlrston_seat seat;
 
-	struct wlr_seat *seat;
-	struct wl_listener new_input;
-	struct wl_listener request_cursor;
-	struct wl_listener request_set_selection;
-	struct wl_list keyboards;
 	enum wlrston_cursor_mode cursor_mode;
 	struct wlrston_view *grabbed_view;
 	double grab_x, grab_y;
@@ -76,13 +92,11 @@ struct wlrston_output {
 };
 
 struct wlrston_keyboard {
-	struct wl_list link;
-	struct wlrston_server *server;
+	struct wlrston_input base;
 	struct wlr_keyboard *wlr_keyboard;
 
 	struct wl_listener modifiers;
 	struct wl_listener key;
-	struct wl_listener destroy;
 };
 
 void server_init(struct wlrston_server *server);
@@ -95,11 +109,13 @@ void server_new_output(struct wl_listener *listener, void *data);
 
 void server_new_xdg_surface(struct wl_listener *listener, void *data);
 
-void cursor_init(struct wlrston_server *server);
+void seat_init(struct wlrston_server *server);
 
-void cursor_finish(struct wlrston_server *server);
+void seat_finish(struct wlrston_server *server);
 
-void server_new_input(struct wl_listener *listener, void *data);
+void cursor_init(struct wlrston_seat *seat);
+
+void cursor_finish(struct wlrston_seat *seat);
 
 void seat_request_cursor(struct wl_listener *listener, void *data);
 

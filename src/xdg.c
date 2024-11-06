@@ -52,8 +52,9 @@ static void begin_interactive(struct wlrston_view *view,
 	 * compositor stops propegating pointer events to clients and instead
 	 * consumes them itself, to move or resize windows. */
 	struct wlrston_server *server = view->server;
+	struct wlrston_seat *seat = &server->seat;
 	struct wlr_surface *focused_surface =
-		server->seat->pointer_state.focused_surface;
+		seat->seat->pointer_state.focused_surface;
 	if (view->xdg_toplevel->base->surface !=
 			wlr_surface_get_root_surface(focused_surface)) {
 		/* Deny move/resize requests from unfocused clients. */
@@ -63,8 +64,8 @@ static void begin_interactive(struct wlrston_view *view,
 	server->cursor_mode = mode;
 
 	if (mode == WLRSTON_CURSOR_MOVE) {
-		server->grab_x = server->cursor->x - view->x;
-		server->grab_y = server->cursor->y - view->y;
+		server->grab_x = seat->cursor->x - view->x;
+		server->grab_y = seat->cursor->y - view->y;
 	} else {
 		struct wlr_box geo_box;
 		wlr_xdg_surface_get_geometry(view->xdg_toplevel->base, &geo_box);
@@ -73,8 +74,8 @@ static void begin_interactive(struct wlrston_view *view,
 			((edges & WLR_EDGE_RIGHT) ? geo_box.width : 0);
 		double border_y = (view->y + geo_box.y) +
 			((edges & WLR_EDGE_BOTTOM) ? geo_box.height : 0);
-		server->grab_x = server->cursor->x - border_x;
-		server->grab_y = server->cursor->y - border_y;
+		server->grab_x = seat->cursor->x - border_x;
+		server->grab_y = seat->cursor->y - border_y;
 
 		server->grab_geobox = geo_box;
 		server->grab_geobox.x += view->x;
