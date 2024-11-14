@@ -13,7 +13,7 @@ static void xdg_toplevel_map(struct wl_listener *listener, void *data)
 {
 	struct wlrston_view *view = wl_container_of(listener, view, map);
 
-	wl_list_insert(&view->server->views, &view->link);
+	wl_list_insert(&view->server->view_list, &view->link);
 	focus_view(view, view->xdg_toplevel->base->surface);
 }
 
@@ -40,7 +40,6 @@ static void xdg_toplevel_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&view->request_fullscreen.link);
 	free(view);
 }
-
 
 static void
 begin_interactive(struct wlrston_view *view, enum wlrston_cursor_mode mode, uint32_t edges)
@@ -106,7 +105,7 @@ static void xdg_toplevel_request_fullscreen(struct wl_listener *listener, void *
 	wlr_xdg_surface_schedule_configure(view->xdg_toplevel->base);
 }
 
-void server_new_xdg_surface(struct wl_listener *listener, void *data)
+void new_xdg_surface_notify(struct wl_listener *listener, void *data)
 {
 	struct wlrston_server *server = wl_container_of(listener, server, new_xdg_surface);
 	struct wlr_xdg_surface *xdg_surface = data;

@@ -7,7 +7,7 @@
 
 #include <wlrston.h>
 
-static void server_new_keyboard(struct wlrston_server *server, struct wlr_input_device *device)
+static void new_keyboard(struct wlrston_server *server, struct wlr_input_device *device)
 {
 	struct wlr_keyboard *wlr_keyboard;
 	struct wlrston_keyboard *keyboard;
@@ -28,24 +28,24 @@ static void server_new_keyboard(struct wlrston_server *server, struct wlr_input_
 	xkb_context_unref(context);
 	wlr_keyboard_set_repeat_info(wlr_keyboard, 25, 600);
 
-	keyboard->modifiers.notify = keyboard_handle_modifiers;
+	keyboard->modifiers.notify = keyboard_modifiers_notify;
 	wl_signal_add(&wlr_keyboard->events.modifiers, &keyboard->modifiers);
-	keyboard->key.notify = keyboard_handle_key;
+	keyboard->key.notify = keyboard_key_notify;
 	wl_signal_add(&wlr_keyboard->events.key, &keyboard->key);
-	keyboard->destroy.notify = keyboard_handle_destroy;
+	keyboard->destroy.notify = keyboard_destroy;
 	wl_signal_add(&device->events.destroy, &keyboard->destroy);
 
 	wlr_seat_set_keyboard(server->seat, keyboard->wlr_keyboard);
 
-	wl_list_insert(&server->keyboards, &keyboard->link);
+	wl_list_insert(&server->keyboard_list, &keyboard->link);
 }
 
-static void server_new_pointer(struct wlrston_server *server, struct wlr_input_device *device)
+static void new_pointer(struct wlrston_server *server, struct wlr_input_device *device)
 {
 	wlr_cursor_attach_input_device(server->cursor, device);
 }
 
-void server_new_input(struct wl_listener *listener, void *data)
+void new_input_notify(struct wl_listener *listener, void *data)
 {
 	struct wlrston_server *server = wl_container_of(listener, server, new_input);
 	struct wlr_input_device *device = data;
@@ -53,24 +53,24 @@ void server_new_input(struct wl_listener *listener, void *data)
 
 	switch (device->type) {
 	case WLR_INPUT_DEVICE_KEYBOARD:
-		server_new_keyboard(server, device);
+		new_keyboard(server, device);
 		break;
 	case WLR_INPUT_DEVICE_POINTER:
-		server_new_pointer(server, device);
+		new_pointer(server, device);
 		break;
 	default:
 		break;
 	}
 
-	if (!wl_list_empty(&server->keyboards)) {
+	if (!wl_list_empty(&server->keyboard_list)) {
 		caps |= WL_SEAT_CAPABILITY_KEYBOARD;
 	}
 	wlr_seat_set_capabilities(server->seat, caps);
 }
 
-void seat_request_cursor(struct wl_listener *listener, void *data)
+void request_set_cursor_notify(struct wl_listener *listener, void *data)
 {
-	struct wlrston_server *server = wl_container_of(listener, server, request_cursor);
+	struct wlrston_server *server = wl_container_of(listener, server, request_set_cursor);
 	struct wlr_seat_pointer_request_set_cursor_event *event = data;
 	struct wlr_seat_client *focused_client =
 		server->seat->pointer_state.focused_client;
@@ -81,7 +81,7 @@ void seat_request_cursor(struct wl_listener *listener, void *data)
 	}
 }
 
-void seat_request_set_selection(struct wl_listener *listener, void *data)
+void request_set_selection_notify(struct wl_listener *listener, void *data)
 {
 	struct wlrston_server *server =
 		wl_container_of(listener, server, request_set_selection);

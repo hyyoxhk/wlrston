@@ -124,7 +124,7 @@ static void process_cursor_motion(struct wlrston_server *server, uint32_t time)
 	}
 }
 
-static void server_cursor_motion(struct wl_listener *listener, void *data)
+static void cursor_motion(struct wl_listener *listener, void *data)
 {
 	struct wlrston_server *server =
 		wl_container_of(listener, server, cursor_motion);
@@ -135,7 +135,7 @@ static void server_cursor_motion(struct wl_listener *listener, void *data)
 	process_cursor_motion(server, event->time_msec);
 }
 
-static void server_cursor_motion_absolute(struct wl_listener *listener, void *data)
+static void cursor_motion_absolute(struct wl_listener *listener, void *data)
 {
 	struct wlrston_server *server =
 		wl_container_of(listener, server, cursor_motion_absolute);
@@ -145,7 +145,7 @@ static void server_cursor_motion_absolute(struct wl_listener *listener, void *da
 	process_cursor_motion(server, event->time_msec);
 }
 
-static void server_cursor_button(struct wl_listener *listener, void *data)
+static void cursor_button(struct wl_listener *listener, void *data)
 {
 	struct wlrston_server *server =
 		wl_container_of(listener, server, cursor_button);
@@ -166,7 +166,7 @@ static void server_cursor_button(struct wl_listener *listener, void *data)
 	}
 }
 
-static void server_cursor_axis(struct wl_listener *listener, void *data)
+static void cursor_axis(struct wl_listener *listener, void *data)
 {
 	struct wlrston_server *server =
 		wl_container_of(listener, server, cursor_axis);
@@ -177,7 +177,7 @@ static void server_cursor_axis(struct wl_listener *listener, void *data)
 				     event->delta_discrete, event->source);
 }
 
-static void server_cursor_frame(struct wl_listener *listener, void *data)
+static void cursor_frame(struct wl_listener *listener, void *data)
 {
 	struct wlrston_server *server =
 		wl_container_of(listener, server, cursor_frame);
@@ -194,19 +194,19 @@ void cursor_init(struct wlrston_server *server)
 	wlr_xcursor_manager_load(server->cursor_mgr, 1);
 
 	server->cursor_mode = WLRSTON_CURSOR_PASSTHROUGH;
-	server->cursor_motion.notify = server_cursor_motion;
+	server->cursor_motion.notify = cursor_motion;
 	wl_signal_add(&server->cursor->events.motion,
 		      &server->cursor_motion);
-	server->cursor_motion_absolute.notify = server_cursor_motion_absolute;
+	server->cursor_motion_absolute.notify = cursor_motion_absolute;
 	wl_signal_add(&server->cursor->events.motion_absolute,
 		      &server->cursor_motion_absolute);
-	server->cursor_button.notify = server_cursor_button;
+	server->cursor_button.notify = cursor_button;
 	wl_signal_add(&server->cursor->events.button,
 		      &server->cursor_button);
-	server->cursor_axis.notify = server_cursor_axis;
+	server->cursor_axis.notify = cursor_axis;
 	wl_signal_add(&server->cursor->events.axis,
 		      &server->cursor_axis);
-	server->cursor_frame.notify = server_cursor_frame;
+	server->cursor_frame.notify = cursor_frame;
 	wl_signal_add(&server->cursor->events.frame,
 		      &server->cursor_frame);
 }

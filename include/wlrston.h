@@ -41,7 +41,7 @@ struct wlrston_server {
 
 	struct wlr_xdg_shell *xdg_shell;
 	struct wl_listener new_xdg_surface;
-	struct wl_list views;
+	struct wl_list view_list;
 
 	struct wlr_cursor *cursor;
 	struct wlr_xcursor_manager *cursor_mgr;
@@ -53,9 +53,9 @@ struct wlrston_server {
 
 	struct wlr_seat *seat;
 	struct wl_listener new_input;
-	struct wl_listener request_cursor;
+	struct wl_listener request_set_cursor;
 	struct wl_listener request_set_selection;
-	struct wl_list keyboards;
+	struct wl_list keyboard_list;
 	enum wlrston_cursor_mode cursor_mode;
 	struct wlrston_view *grabbed_view;
 	double grab_x, grab_y;
@@ -63,7 +63,7 @@ struct wlrston_server {
 	uint32_t resize_edges;
 
 	struct wlr_output_layout *output_layout;
-	struct wl_list outputs;
+	struct wl_list output_list;
 	struct wl_listener new_output;
 };
 
@@ -91,24 +91,24 @@ void server_finish(struct wlrston_server *server);
 
 void reset_cursor_mode(struct wlrston_server *server);
 
-void server_new_output(struct wl_listener *listener, void *data);
+void new_output_notify(struct wl_listener *listener, void *data);
 
-void server_new_xdg_surface(struct wl_listener *listener, void *data);
+void new_xdg_surface_notify(struct wl_listener *listener, void *data);
 
 void cursor_init(struct wlrston_server *server);
 
 void cursor_finish(struct wlrston_server *server);
 
-void server_new_input(struct wl_listener *listener, void *data);
+void new_input_notify(struct wl_listener *listener, void *data);
 
-void seat_request_cursor(struct wl_listener *listener, void *data);
+void request_set_cursor_notify(struct wl_listener *listener, void *data);
 
-void seat_request_set_selection(struct wl_listener *listener, void *data);
+void request_set_selection_notify(struct wl_listener *listener, void *data);
 
-void keyboard_handle_modifiers(struct wl_listener *listener, void *data);
+void keyboard_modifiers_notify(struct wl_listener *listener, void *data);
 
-void keyboard_handle_key(struct wl_listener *listener, void *data);
+void keyboard_key_notify(struct wl_listener *listener, void *data);
 
-void keyboard_handle_destroy(struct wl_listener *listener, void *data);
+void keyboard_destroy(struct wl_listener *listener, void *data);
 
 #endif

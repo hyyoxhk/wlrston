@@ -35,31 +35,31 @@ void server_init(struct wlrston_server *server)
 
 	server->output_layout = wlr_output_layout_create();
 
-	wl_list_init(&server->outputs);
-	server->new_output.notify = server_new_output;
+	wl_list_init(&server->output_list);
+	server->new_output.notify = new_output_notify;
 	wl_signal_add(&server->backend->events.new_output,
 		      &server->new_output);
 
 	server->scene = wlr_scene_create();
 	wlr_scene_attach_output_layout(server->scene, server->output_layout);
 
-	wl_list_init(&server->views);
+	wl_list_init(&server->view_list);
 	server->xdg_shell = wlr_xdg_shell_create(server->wl_display, 3);
-	server->new_xdg_surface.notify = server_new_xdg_surface;
+	server->new_xdg_surface.notify = new_xdg_surface_notify;
 	wl_signal_add(&server->xdg_shell->events.new_surface,
 		      &server->new_xdg_surface);
 
 	cursor_init(server);
 
-	wl_list_init(&server->keyboards);
-	server->new_input.notify = server_new_input;
+	wl_list_init(&server->keyboard_list);
+	server->new_input.notify = new_input_notify;
 	wl_signal_add(&server->backend->events.new_input,
 		      &server->new_input);
 	server->seat = wlr_seat_create(server->wl_display, "seat0");
-	server->request_cursor.notify = seat_request_cursor;
+	server->request_set_cursor.notify = request_set_cursor_notify;
 	wl_signal_add(&server->seat->events.request_set_cursor,
-		      &server->request_cursor);
-	server->request_set_selection.notify = seat_request_set_selection;
+		      &server->request_set_cursor);
+	server->request_set_selection.notify = request_set_selection_notify;
 	wl_signal_add(&server->seat->events.request_set_selection,
 		      &server->request_set_selection);
 }

@@ -9,7 +9,7 @@
 #include <wlrston.h>
 #include <view.h>
 
-void keyboard_handle_modifiers(struct wl_listener *listener, void *data)
+void keyboard_modifiers_notify(struct wl_listener *listener, void *data)
 {
 	struct wlrston_keyboard *keyboard =
 		wl_container_of(listener, keyboard, modifiers);
@@ -26,11 +26,11 @@ static bool handle_keybinding(struct wlrston_server *server, xkb_keysym_t sym)
 		wl_display_terminate(server->wl_display);
 		break;
 	case XKB_KEY_F1:
-		if (wl_list_length(&server->views) < 2) {
+		if (wl_list_length(&server->view_list) < 2) {
 			break;
 		}
 		struct wlrston_view *next_view = wl_container_of(
-			server->views.prev, next_view, link);
+			server->view_list.prev, next_view, link);
 		focus_view(next_view, next_view->xdg_toplevel->base->surface);
 		break;
 	default:
@@ -39,7 +39,7 @@ static bool handle_keybinding(struct wlrston_server *server, xkb_keysym_t sym)
 	return true;
 }
 
-void keyboard_handle_key(struct wl_listener *listener, void *data)
+void keyboard_key_notify(struct wl_listener *listener, void *data)
 {
 	struct wlrston_keyboard *keyboard =
 		wl_container_of(listener, keyboard, key);
@@ -68,7 +68,7 @@ void keyboard_handle_key(struct wl_listener *listener, void *data)
 	}
 }
 
-void keyboard_handle_destroy(struct wl_listener *listener, void *data)
+void keyboard_destroy(struct wl_listener *listener, void *data)
 {
 	struct wlrston_keyboard *keyboard =
 		wl_container_of(listener, keyboard, destroy);
