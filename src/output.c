@@ -60,7 +60,7 @@ void server_new_output(struct wl_listener *listener, void *data)
 	output->destroy.notify = output_destroy;
 	wl_signal_add(&wlr_output->events.destroy, &output->destroy);
 
-	wl_list_insert(&server->outputs, &output->link);
+	wl_list_insert(&server->output_list, &output->link);
 
 	wlr_output_layout_add_auto(server->output_layout, wlr_output);
 }

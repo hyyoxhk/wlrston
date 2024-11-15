@@ -13,7 +13,7 @@ static void xdg_toplevel_map(struct wl_listener *listener, void *data)
 {
 	struct wlrston_view *view = wl_container_of(listener, view, map);
 
-	wl_list_insert(&view->server->views, &view->link);
+	wl_list_insert(&view->server->view_list, &view->link);
 	focus_view(view, view->xdg_toplevel->base->surface);
 }
 

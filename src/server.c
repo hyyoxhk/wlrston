@@ -35,7 +35,7 @@ void server_init(struct wlrston_server *server)
 
 	server->output_layout = wlr_output_layout_create();
 
-	wl_list_init(&server->outputs);
+	wl_list_init(&server->output_list);
 	server->new_output.notify = server_new_output;
 	wl_signal_add(&server->backend->events.new_output,
 		      &server->new_output);
@@ -43,7 +43,7 @@ void server_init(struct wlrston_server *server)
 	server->scene = wlr_scene_create();
 	wlr_scene_attach_output_layout(server->scene, server->output_layout);
 
-	wl_list_init(&server->views);
+	wl_list_init(&server->view_list);
 	server->xdg_shell = wlr_xdg_shell_create(server->wl_display, 3);
 	server->new_xdg_surface.notify = server_new_xdg_surface;
 	wl_signal_add(&server->xdg_shell->events.new_surface,
@@ -51,7 +51,7 @@ void server_init(struct wlrston_server *server)
 
 	cursor_init(server);
 
-	wl_list_init(&server->keyboards);
+	wl_list_init(&server->keyboard_list);
 	server->new_input.notify = server_new_input;
 	wl_signal_add(&server->backend->events.new_input,
 		      &server->new_input);

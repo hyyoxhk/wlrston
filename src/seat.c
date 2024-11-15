@@ -37,7 +37,7 @@ static void server_new_keyboard(struct wlrston_server *server, struct wlr_input_
 
 	wlr_seat_set_keyboard(server->seat, keyboard->wlr_keyboard);
 
-	wl_list_insert(&server->keyboards, &keyboard->link);
+	wl_list_insert(&server->keyboard_list, &keyboard->link);
 }
 
 static void server_new_pointer(struct wlrston_server *server, struct wlr_input_device *device)
@@ -62,7 +62,7 @@ void server_new_input(struct wl_listener *listener, void *data)
 		break;
 	}
 
-	if (!wl_list_empty(&server->keyboards)) {
+	if (!wl_list_empty(&server->keyboard_list)) {
 		caps |= WL_SEAT_CAPABILITY_KEYBOARD;
 	}
 	wlr_seat_set_capabilities(server->seat, caps);

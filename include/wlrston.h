@@ -41,10 +41,10 @@ struct wlrston_server {
 
 	struct wlr_xdg_shell *xdg_shell;
 	struct wl_listener new_xdg_surface;
-	struct wl_list views;
+	struct wl_list view_list;
 
 	struct wlr_cursor *cursor;
-	struct wlr_xcursor_manager *cursor_mgr;
+	struct wlr_xcursor_manager *xcursor_mgr;
 	struct wl_listener cursor_motion;
 	struct wl_listener cursor_motion_absolute;
 	struct wl_listener cursor_button;
@@ -55,7 +55,7 @@ struct wlrston_server {
 	struct wl_listener new_input;
 	struct wl_listener request_cursor;
 	struct wl_listener request_set_selection;
-	struct wl_list keyboards;
+	struct wl_list keyboard_list;
 	enum wlrston_cursor_mode cursor_mode;
 	struct wlrston_view *grabbed_view;
 	double grab_x, grab_y;
@@ -63,7 +63,7 @@ struct wlrston_server {
 	uint32_t resize_edges;
 
 	struct wlr_output_layout *output_layout;
-	struct wl_list outputs;
+	struct wl_list output_list;
 	struct wl_listener new_output;
 };
 

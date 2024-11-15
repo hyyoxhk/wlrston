@@ -113,7 +113,7 @@ static void process_cursor_motion(struct wlrston_server *server, uint32_t time)
 	view = desktop_view_at(server, server->cursor->x, server->cursor->y,
 			       &surface, &sx, &sy);
 	if (!view) {
-		wlr_xcursor_manager_set_cursor_image(server->cursor_mgr, "left_ptr",
+		wlr_xcursor_manager_set_cursor_image(server->xcursor_mgr, "left_ptr",
 						     server->cursor);
 	}
 	if (surface) {
@@ -190,8 +190,8 @@ void cursor_init(struct wlrston_server *server)
 	server->cursor = wlr_cursor_create();
 	wlr_cursor_attach_output_layout(server->cursor, server->output_layout);
 
-	server->cursor_mgr = wlr_xcursor_manager_create(NULL, 24);
-	wlr_xcursor_manager_load(server->cursor_mgr, 1);
+	server->xcursor_mgr = wlr_xcursor_manager_create(NULL, 24);
+	wlr_xcursor_manager_load(server->xcursor_mgr, 1);
 
 	server->cursor_mode = WLRSTON_CURSOR_PASSTHROUGH;
 	server->cursor_motion.notify = server_cursor_motion;
@@ -213,6 +213,6 @@ void cursor_init(struct wlrston_server *server)
 
 void cursor_finish(struct wlrston_server *server)
 {
-	wlr_xcursor_manager_destroy(server->cursor_mgr);
+	wlr_xcursor_manager_destroy(server->xcursor_mgr);
 	wlr_cursor_destroy(server->cursor);
 }

@@ -35,7 +35,7 @@ void focus_view(struct wlrston_view *view, struct wlr_surface *surface)
 
 	wlr_scene_node_raise_to_top(&view->scene_tree->node);
 	wl_list_remove(&view->link);
-	wl_list_insert(&server->views, &view->link);
+	wl_list_insert(&server->view_list, &view->link);
 
 	wlr_xdg_toplevel_set_activated(view->xdg_toplevel, true);
 
