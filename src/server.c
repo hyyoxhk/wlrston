@@ -16,6 +16,7 @@
 #include <wlr/types/wlr_xdg_shell.h>
 
 #include <wlrston.h>
+#include <server.h>
 
 struct wlrston_server *server_create(struct wl_display *display)
 {
@@ -79,19 +80,21 @@ struct wlrston_server *server_create(struct wl_display *display)
 		goto failed_destroy_output_layout;
 	}
 
+	/* Initialize lists before registering listeners */
+	wl_list_init(&server->output_list);
+	wl_list_init(&server->view_list);
+
 	server->xdg_shell = wlr_xdg_shell_create(server->wl_display, 3);
-	server->new_xdg_surface.notify = xdg_surface_new;
+	server->new_xdg_surface.notify = handle_new_xdg_surface;
 	wl_signal_add(&server->xdg_shell->events.new_surface,
 		      &server->new_xdg_surface);
 
 	seat_init(server);
 
-	server->new_output.notify = output_new;
+	server->new_output.notify = handle_new_output;
 	wl_signal_add(&server->backend->events.new_output,
 		      &server->new_output);
 
-	wl_list_init(&server->output_list);
-	wl_list_init(&server->view_list);
 
 	return server;
 
@@ -110,8 +113,11 @@ failed:
 	return NULL;
 }
 
-void server_destory(struct wlrston_server *server)
+void server_destroy(struct wlrston_server *server)
 {
+	wl_list_remove(&server->new_output.link);
+	wl_list_remove(&server->new_xdg_surface.link);
+
 	seat_finish(server);
 	wlr_output_layout_destroy(server->output_layout);
 	wlr_scene_node_destroy(&server->scene->tree.node);

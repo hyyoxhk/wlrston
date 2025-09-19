@@ -87,33 +87,13 @@ struct wlrston_keyboard {
 
 struct wlrston_server *server_create(struct wl_display *display);
 
-void server_destory(struct wlrston_server *server);
+void server_destroy(struct wlrston_server *server);
 
 bool server_start(struct wlrston_server *server);
 
-void reset_cursor_mode(struct wlrston_server *server);
+/* internal APIs moved to include/server.h */
 
-void output_new(struct wl_listener *listener, void *data);
-
-void xdg_surface_new(struct wl_listener *listener, void *data);
-
-void seat_init(struct wlrston_server *server);
-
-void seat_finish(struct wlrston_server *server);
-
-void cursor_init(struct wlrston_seat *seat);
-
-void cursor_finish(struct wlrston_seat *seat);
-
-void seat_request_cursor(struct wl_listener *listener, void *data);
-
-void seat_request_set_selection(struct wl_listener *listener, void *data);
-
-void keyboard_modifiers_notify(struct wl_listener *listener, void *data);
-
-void keyboard_key_notify(struct wl_listener *listener, void *data);
-
-void keyboard_handle_destroy(struct wl_listener *listener, void *data);
+/* internal APIs moved to include/server.h */
 
 void keyboard_init(struct wlrston_seat *seat);
 

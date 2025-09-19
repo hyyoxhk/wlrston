@@ -208,7 +208,8 @@ int main(int argc, char *argv[])
 	wl_display_run(display);
 
 out:
-	server_destory(server);
+	server_destroy(server);
+	wl_display_destroy(display);
 
 out_signals:
 	for (i = 1; i >= 0; i--)

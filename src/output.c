@@ -11,6 +11,7 @@
 #include <wlr/types/wlr_scene.h>
 
 #include <wlrston.h>
+#include <server.h>
 
 static void output_frame(struct wl_listener *listener, void *data)
 {
@@ -36,7 +37,7 @@ static void output_destroy(struct wl_listener *listener, void *data)
 	free(output);
 }
 
-void output_new(struct wl_listener *listener, void *data)
+void handle_new_output(struct wl_listener *listener, void *data)
 {
 	struct wlrston_server *server =
 		wl_container_of(listener, server, new_output);

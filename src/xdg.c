@@ -12,6 +12,7 @@
 #include <wlr/util/edges.h>
 
 #include <wlrston.h>
+#include <server.h>
 #include <view.h>
 
 static void xdg_toplevel_map(struct wl_listener *listener, void *data)
@@ -55,6 +56,9 @@ begin_interactive(struct wlrston_view *view, enum wlrston_cursor_mode mode, uint
 	struct wlr_surface *focused_surface =
 		seat->seat->pointer_state.focused_surface;
 
+	if (focused_surface == NULL) {
+		return;
+	}
 	if (view->xdg_toplevel->base->surface != wlr_surface_get_root_surface(focused_surface)) {
 		return;
 	}
@@ -112,7 +116,7 @@ static void xdg_toplevel_request_fullscreen(struct wl_listener *listener, void *
 	wlr_xdg_surface_schedule_configure(view->xdg_toplevel->base);
 }
 
-void xdg_surface_new(struct wl_listener *listener, void *data)
+void handle_new_xdg_surface(struct wl_listener *listener, void *data)
 {
 	struct wlrston_server *server = wl_container_of(listener, server, new_xdg_surface);
 	struct wlr_xdg_surface *xdg_surface = data;

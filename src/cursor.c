@@ -10,6 +10,7 @@
 #include <wlr/types/wlr_xcursor_manager.h>
 
 #include <wlrston.h>
+#include <server.h>
 #include <view.h>
 
 static struct wlrston_view *
@@ -44,6 +45,13 @@ void reset_cursor_mode(struct wlrston_server *server)
 {
 	server->cursor_mode = WLRSTON_CURSOR_PASSTHROUGH;
 	server->grabbed_view = NULL;
+	server->resize_edges = 0;
+	server->grab_x = 0.0;
+	server->grab_y = 0.0;
+	server->grab_geobox.x = 0;
+	server->grab_geobox.y = 0;
+	server->grab_geobox.width = 0;
+	server->grab_geobox.height = 0;
 }
 
 static void request_set_cursor_notify(struct wl_listener *listener, void *data)
@@ -248,6 +256,15 @@ void cursor_init(struct wlrston_seat *seat)
 
 void cursor_finish(struct wlrston_seat *seat)
 {
+	/* remove listeners before destroying objects */
+	wl_list_remove(&seat->cursor_motion.link);
+	wl_list_remove(&seat->cursor_motion_absolute.link);
+	wl_list_remove(&seat->cursor_button.link);
+	wl_list_remove(&seat->cursor_axis.link);
+	wl_list_remove(&seat->cursor_frame.link);
+	wl_list_remove(&seat->request_set_cursor.link);
+	wl_list_remove(&seat->request_set_selection.link);
+
 	wlr_xcursor_manager_destroy(seat->xcursor_mgr);
 	wlr_cursor_destroy(seat->cursor);
 }

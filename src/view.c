@@ -34,8 +34,9 @@ void focus_view(struct wlrston_view *view, struct wlr_surface *surface)
 	}
 	if (prev_surface) {
 		previous = wlr_xdg_surface_from_wlr_surface(wlr_seat->keyboard_state.focused_surface);
-		assert(previous->role == WLR_XDG_SURFACE_ROLE_TOPLEVEL);
+		if (previous && previous->role == WLR_XDG_SURFACE_ROLE_TOPLEVEL) {
 		wlr_xdg_toplevel_set_activated(previous->toplevel, false);
+		}
 	}
 	keyboard = wlr_seat_get_keyboard(wlr_seat);
 

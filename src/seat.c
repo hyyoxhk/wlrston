@@ -11,6 +11,7 @@
 #include <wlr/types/wlr_keyboard_group.h>
 
 #include <wlrston.h>
+#include <server.h>
 
 static void
 input_device_destroy(struct wl_listener *listener, void *data)
@@ -74,9 +75,9 @@ new_keyboard(struct wlrston_seat *seat, struct wlr_input_device *device)
 
 	wlr_keyboard_set_keymap(wlr_keyboard, seat->keyboard_group->keyboard.keymap);
 
-	keyboard->modifiers.notify = keyboard_modifiers_notify;
+	keyboard->modifiers.notify = handle_keyboard_modifiers;
 	wl_signal_add(&wlr_keyboard->events.modifiers, &keyboard->modifiers);
-	keyboard->key.notify = keyboard_key_notify;
+	keyboard->key.notify = handle_keyboard_key;
 	wl_signal_add(&wlr_keyboard->events.key, &keyboard->key);
 
 	wlr_seat_set_keyboard(seat->seat, keyboard->wlr_keyboard);
@@ -149,4 +150,5 @@ void seat_finish(struct wlrston_server *server)
 
 	keyboard_finish(seat);
 	cursor_finish(seat);
+	wlr_seat_destroy(seat->seat);
 }

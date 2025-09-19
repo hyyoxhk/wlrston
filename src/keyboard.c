@@ -11,9 +11,10 @@
 #include <wlr/types/wlr_xdg_shell.h>
 
 #include <wlrston.h>
+#include <server.h>
 #include <view.h>
 
-void keyboard_modifiers_notify(struct wl_listener *listener, void *data)
+void handle_keyboard_modifiers(struct wl_listener *listener, void *data)
 {
 	struct wlrston_keyboard *keyboard =
 		wl_container_of(listener, keyboard, modifiers);
@@ -45,7 +46,7 @@ static bool handle_keybinding(struct wlrston_server *server, xkb_keysym_t sym)
 	return true;
 }
 
-void keyboard_key_notify(struct wl_listener *listener, void *data)
+void handle_keyboard_key(struct wl_listener *listener, void *data)
 {
 	struct wlrston_keyboard *keyboard =
 		wl_container_of(listener, keyboard, key);
