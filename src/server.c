@@ -18,7 +18,7 @@
 #include <wlrston.h>
 #include <server.h>
 
-struct wlrston_server *server_create(struct wl_display *display)
+WL_EXPORT struct wlrston_server *server_create(struct wl_display *display)
 {
 	struct wlrston_server *server;
 
@@ -85,9 +85,7 @@ struct wlrston_server *server_create(struct wl_display *display)
 	wl_list_init(&server->view_list);
 
 	server->xdg_shell = wlr_xdg_shell_create(server->wl_display, 3);
-	server->new_xdg_surface.notify = handle_new_xdg_surface;
-	wl_signal_add(&server->xdg_shell->events.new_surface,
-		      &server->new_xdg_surface);
+	/* XDG new surface listener is registered by external plugin (desktop-shell) */
 
 	seat_init(server);
 
@@ -113,10 +111,9 @@ failed:
 	return NULL;
 }
 
-void server_destroy(struct wlrston_server *server)
+WL_EXPORT void server_destroy(struct wlrston_server *server)
 {
 	wl_list_remove(&server->new_output.link);
-	wl_list_remove(&server->new_xdg_surface.link);
 
 	seat_finish(server);
 	wlr_output_layout_destroy(server->output_layout);
@@ -128,7 +125,7 @@ void server_destroy(struct wlrston_server *server)
 	free(server);
 }
 
-bool server_start(struct wlrston_server *server)
+WL_EXPORT bool server_start(struct wlrston_server *server)
 {
 	return wlr_backend_start(server->backend);
 }

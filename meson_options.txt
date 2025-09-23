@@ -1,0 +1,3 @@
+option('shell-desktop', type: 'boolean', value: true, description: 'Build desktop shell plugin')
+option('desktop-shell-client-default', type: 'string', value: 'none', description: 'Default desktop shell client')
+

@@ -6,16 +6,18 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include "desktop-shell.h"
+
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/util/edges.h>
 
 #include <wlrston.h>
-#include <server.h>
 #include <view.h>
 
-static void xdg_toplevel_map(struct wl_listener *listener, void *data)
+static void
+xdg_toplevel_map(struct wl_listener *listener, void *data)
 {
 	struct wlrston_view *view = wl_container_of(listener, view, map);
 
@@ -28,7 +30,17 @@ static void xdg_toplevel_unmap(struct wl_listener *listener, void *data)
 	struct wlrston_view *view = wl_container_of(listener, view, unmap);
 
 	if (view == view->server->grabbed_view) {
-		reset_cursor_mode(view->server);
+		/* local fallback: avoid needing main binary symbol resolution */
+		struct wlrston_server *server = view->server;
+		server->cursor_mode = WLRSTON_CURSOR_PASSTHROUGH;
+		server->grabbed_view = NULL;
+		server->resize_edges = 0;
+		server->grab_x = 0.0;
+		server->grab_y = 0.0;
+		server->grab_geobox.x = 0;
+		server->grab_geobox.y = 0;
+		server->grab_geobox.width = 0;
+		server->grab_geobox.height = 0;
 	}
 	wl_list_remove(&view->link);
 }
@@ -118,7 +130,8 @@ static void xdg_toplevel_request_fullscreen(struct wl_listener *listener, void *
 
 void handle_new_xdg_surface(struct wl_listener *listener, void *data)
 {
-	struct wlrston_server *server = wl_container_of(listener, server, new_xdg_surface);
+	struct desktop_shell *shell = wl_container_of(listener, shell, new_xdg_surface);
+	struct wlrston_server *server = shell->server;
 	struct wlr_xdg_surface *xdg_surface = data;
 	struct wlr_xdg_surface *parent;
 	struct wlr_scene_tree *parent_tree;
