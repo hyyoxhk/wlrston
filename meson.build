@@ -55,6 +55,5 @@ dep_pixman = dependency('pixman-1', version: '>= 0.25.2')
 
 subdir('protocol')
 subdir('src')
-subdir('desktop-shell')
 
 configure_file(output: 'config.h', configuration: config_h)
