@@ -18,6 +18,7 @@
 #include <dlfcn.h>
 
 #include <wlrston.h>
+#include <view.h>
 
 static int on_term_signal(int signal_number, void *data)
 {
@@ -120,17 +121,29 @@ load_module_entrypoint(const char *name, const char *entrypoint, const char *mod
 }
 
 static int
-load_shell(struct wlrston_server *server, const char *name, int *argc, char *argv[])
+load_shell(struct wlrston_server *server, const struct wlrston_plugin_api *api,
+	   const char *name, int *argc, char *argv[])
 {
-	int (*shell_init)(struct wlrston_server *server,
-			  int *argc, char *argv[]);
+	wlrston_shell_init_func shell_init;
 
 	shell_init = load_module_entrypoint(name, "wlrston_shell_init", SHELLDIR);
 	if (!shell_init)
 		return -1;
-	if (shell_init(server, argc, argv) < 0)
+	if (shell_init(server, api, argc, argv) < 0)
 		return -1;
 	return 0;
+}
+
+static struct wlr_xdg_shell *
+plugin_get_xdg_shell(struct wlrston_server *server)
+{
+	return server->xdg_shell;
+}
+
+static struct wlr_scene *
+plugin_get_scene(struct wlrston_server *server)
+{
+	return server->scene;
 }
 
 int main(int argc, char *argv[])
@@ -143,6 +156,15 @@ int main(int argc, char *argv[])
 	struct sigaction action;
 	int i;
 	int c;
+	const struct wlrston_plugin_api plugin_api = {
+		.abi_version = WLRSTON_PLUGIN_API_VERSION,
+		.get_xdg_shell = plugin_get_xdg_shell,
+		.get_scene = plugin_get_scene,
+		.map_view = map_view,
+		.unmap_view = unmap_view,
+		.focus_view = focus_view,
+		.begin_interactive = begin_interactive_view,
+	};
 
 	wlr_log_init(WLR_DEBUG, NULL);
 
@@ -194,7 +216,7 @@ int main(int argc, char *argv[])
 		goto out;
 
 	// load_shell
-	load_shell(server, "desktop-shell.so", &argc, argv);
+	load_shell(server, &plugin_api, "desktop-shell.so", &argc, argv);
 
 	setenv("WAYLAND_DISPLAY", socket, true);
 	if (startup_cmd) {

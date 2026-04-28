@@ -6,16 +6,11 @@
 #ifndef WLRSTON_H
 #define WLRSTON_H
 
+#include <wlrston-plugin.h>
+
 #include <wayland-server-core.h>
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
-
-/* For brevity's sake, struct members are annotated where they are used. */
-enum wlrston_cursor_mode {
-	WLRSTON_CURSOR_PASSTHROUGH,
-	WLRSTON_CURSOR_MOVE,
-	WLRSTON_CURSOR_RESIZE,
-};
 
 struct wlrston_input {
 	struct wlr_input_device *device;
@@ -53,7 +48,6 @@ struct wlrston_server {
 	struct wlr_scene *scene;
 
 	struct wlr_xdg_shell *xdg_shell;
-	struct wl_listener new_xdg_surface;
 	struct wl_list view_list;
 
 	struct wlrston_seat seat;
@@ -98,7 +92,5 @@ bool server_start(struct wlrston_server *server);
 void keyboard_init(struct wlrston_seat *seat);
 
 void keyboard_finish(struct wlrston_seat *seat);
-
-int wlrston_shell_init(struct wlrston_server *server, int *argc, char *argv[]);
 
 #endif

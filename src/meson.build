@@ -2,7 +2,6 @@ srcs_wlrston = [
 	'main.c',
 	'server.c',
 	'output.c',
-	'xdg.c',
 	'seat.c',
 	'keyboard.c',
 	'cursor.c',

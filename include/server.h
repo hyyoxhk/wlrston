@@ -19,7 +19,6 @@ void cursor_init(struct wlrston_seat *seat);
 void cursor_finish(struct wlrston_seat *seat);
 
 void handle_new_output(struct wl_listener *listener, void *data);
-void handle_new_xdg_surface(struct wl_listener *listener, void *data);
 
 void handle_keyboard_modifiers(struct wl_listener *listener, void *data);
 void handle_keyboard_key(struct wl_listener *listener, void *data);
