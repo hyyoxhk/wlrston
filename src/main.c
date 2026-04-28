@@ -140,11 +140,35 @@ plugin_get_xdg_shell(struct wlrston_server *server)
 	return server->xdg_shell;
 }
 
+static struct wl_display *
+plugin_get_display(struct wlrston_server *server)
+{
+	return server->wl_display;
+}
+
 static struct wlr_scene *
 plugin_get_scene(struct wlrston_server *server)
 {
 	return server->scene;
 }
+
+static struct wlr_output_layout *
+plugin_get_output_layout(struct wlrston_server *server)
+{
+	return server->output_layout;
+}
+
+	const struct wlrston_plugin_api plugin_api = {
+		.abi_version = WLRSTON_PLUGIN_API_VERSION,
+		.get_display = plugin_get_display,
+		.get_xdg_shell = plugin_get_xdg_shell,
+		.get_scene = plugin_get_scene,
+		.get_output_layout = plugin_get_output_layout,
+		.map_view = map_view,
+		.unmap_view = unmap_view,
+		.focus_view = focus_view,
+	.begin_interactive = begin_interactive_view,
+};
 
 int main(int argc, char *argv[])
 {
@@ -156,15 +180,6 @@ int main(int argc, char *argv[])
 	struct sigaction action;
 	int i;
 	int c;
-	const struct wlrston_plugin_api plugin_api = {
-		.abi_version = WLRSTON_PLUGIN_API_VERSION,
-		.get_xdg_shell = plugin_get_xdg_shell,
-		.get_scene = plugin_get_scene,
-		.map_view = map_view,
-		.unmap_view = unmap_view,
-		.focus_view = focus_view,
-		.begin_interactive = begin_interactive_view,
-	};
 
 	wlr_log_init(WLR_DEBUG, NULL);
 

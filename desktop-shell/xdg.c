@@ -102,7 +102,7 @@ void handle_new_xdg_surface(struct wl_listener *listener, void *data)
 	view->api = shell->api;
 	view->xdg_toplevel = xdg_surface->toplevel;
 	view->scene_tree = wlr_scene_xdg_surface_create(
-		&shell->api->get_scene(shell->server)->tree,
+		shell->app_tree,
 		view->xdg_toplevel->base);
 	if (view->scene_tree == NULL) {
 		free(view);

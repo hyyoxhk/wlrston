@@ -38,7 +38,7 @@ desktop_view_at(struct wlrston_server *server, double lx, double ly,
 	while (tree != NULL && tree->node.data == NULL) {
 		tree = tree->node.parent;
 	}
-	return tree->node.data;
+	return tree != NULL ? tree->node.data : NULL;
 }
 
 void reset_cursor_mode(struct wlrston_server *server)

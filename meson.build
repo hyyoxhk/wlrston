@@ -58,5 +58,7 @@ subdir('src')
 subdir('desktop-shell')
 
 install_headers('include/wlrston-plugin.h')
+install_data('protocol/weston-desktop-shell.xml',
+	install_dir: join_paths(get_option('datadir'), 'wlrston', 'protocols'))
 
 configure_file(output: 'config.h', configuration: config_h)

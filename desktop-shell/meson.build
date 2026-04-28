@@ -3,6 +3,8 @@ srcs_shell_desktop = [
 	'xdg.c',
 	xdg_shell_protocol_h,
 	xdg_shell_protocol_c,
+	weston_desktop_shell_protocol_h,
+	weston_desktop_shell_protocol_c,
 ]
 
 deps_shell_desktop = [

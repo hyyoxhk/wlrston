@@ -15,6 +15,7 @@
 #define WLRSTON_PLUGIN_API_VERSION 1
 
 struct wlr_surface;
+struct wlr_output_layout;
 struct wlrston_plugin_api;
 struct wlrston_server;
 
@@ -42,8 +43,10 @@ struct wlrston_view {
 
 struct wlrston_plugin_api {
 	uint32_t abi_version;
+	struct wl_display *(*get_display)(struct wlrston_server *server);
 	struct wlr_xdg_shell *(*get_xdg_shell)(struct wlrston_server *server);
 	struct wlr_scene *(*get_scene)(struct wlrston_server *server);
+	struct wlr_output_layout *(*get_output_layout)(struct wlrston_server *server);
 	void (*map_view)(struct wlrston_view *view);
 	void (*unmap_view)(struct wlrston_view *view);
 	void (*focus_view)(struct wlrston_view *view, struct wlr_surface *surface);

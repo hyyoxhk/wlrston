@@ -6,6 +6,7 @@ dir_wp_base = dep_wp.get_pkgconfig_variable('pkgdatadir')
 
 generated_protocols = [
 	[ 'xdg-shell', 'stable' ],
+	[ 'weston-desktop-shell', 'internal' ],
 ]
 
 foreach proto: generated_protocols
