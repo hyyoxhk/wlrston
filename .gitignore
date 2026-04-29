@@ -14,4 +14,7 @@ build/
 builddir/
 .vscode/
 .cache/
+.cursor/
+.claude
+.codex
 .vscode-ctags
