@@ -30,10 +30,17 @@ static void output_frame(struct wl_listener *listener, void *data)
 static void output_destroy(struct wl_listener *listener, void *data)
 {
 	struct wlrston_output *output = wl_container_of(listener, output, destroy);
+	struct wlrston_server *server = output->server;
 
 	wl_list_remove(&output->frame.link);
 	wl_list_remove(&output->destroy.link);
 	wl_list_remove(&output->link);
+
+	if (wl_list_empty(&server->output_list)) {
+		wlr_log(WLR_INFO, "last output destroyed, terminating display");
+		wl_display_terminate(server->wl_display);
+	}
+
 	free(output);
 }
 

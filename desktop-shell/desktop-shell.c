@@ -22,6 +22,18 @@ static const struct wlr_surface_role desktop_shell_surface_role = {
 };
 
 static void
+desktop_shell_surface_handle_scene_tree_destroy(struct wl_listener *listener,
+						  void *data)
+{
+	struct desktop_shell_surface *surface =
+		wl_container_of(listener, surface, scene_tree_destroy);
+
+	wl_list_remove(&surface->scene_tree_destroy.link);
+	surface->scene_tree = NULL;
+	surface->scene_surface = NULL;
+}
+
+static void
 desktop_shell_surface_destroy(struct wl_listener *listener, void *data)
 {
 	struct desktop_shell_surface *surface =
@@ -157,6 +169,10 @@ desktop_shell_attach_surface(struct desktop_shell_surface *surface,
 	if (surface->scene_tree == NULL) {
 		return;
 	}
+	surface->scene_tree_destroy.notify =
+		desktop_shell_surface_handle_scene_tree_destroy;
+	wl_signal_add(&surface->scene_tree->node.events.destroy,
+		      &surface->scene_tree_destroy);
 
 	surface->scene_surface = wlr_scene_surface_create(surface->scene_tree,
 							      surface->surface);

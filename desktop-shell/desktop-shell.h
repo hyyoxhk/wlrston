@@ -27,6 +27,7 @@ struct desktop_shell_surface {
 	struct wlr_output *output;
 	struct wlr_scene_tree *scene_tree;
 	struct wlr_scene_surface *scene_surface;
+	struct wl_listener scene_tree_destroy;
 	struct wl_listener surface_destroy;
 	enum desktop_shell_surface_kind kind;
 };

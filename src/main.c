@@ -173,9 +173,9 @@ plugin_get_output_layout(struct wlrston_server *server)
 int main(int argc, char *argv[])
 {
 	char *startup_cmd = NULL;
-	struct wlrston_server *server;
-	struct wl_display *display;
-	struct wl_event_source *signals[2];
+	struct wlrston_server *server = NULL;
+	struct wl_display *display = NULL;
+	struct wl_event_source *signals[2] = {0};
 	struct wl_event_loop *loop;
 	struct sigaction action;
 	int i;
@@ -215,20 +215,20 @@ int main(int argc, char *argv[])
 	action.sa_flags = 0;
 	sigaction(SIGINT, &action, NULL);
 	if (!signals[0] || !signals[1])
-		goto out_signals;
+		goto out;
 
 	server = server_create(display);
 	if (!server) {
-		goto out_signals;
+		goto out;
 	}
 
 	if (!server_start(server))
-		goto out;
+		goto out_signals;
 
 	/* Add a Unix socket to the Wayland display. */
 	const char *socket = wl_display_add_socket_auto(display);
 	if (!socket)
-		goto out;
+		goto out_signals;
 
 	// load_shell
 	load_shell(server, &plugin_api, "desktop-shell.so", &argc, argv);
@@ -244,14 +244,16 @@ int main(int argc, char *argv[])
 			socket);
 	wl_display_run(display);
 
-out:
-	server_destroy(server);
-	wl_display_destroy(display);
-
 out_signals:
 	for (i = 1; i >= 0; i--)
 		if (signals[i])
 			wl_event_source_remove(signals[i]);
+
+out:
+	if (server)
+		server_destroy(server);
+	if (display)
+		wl_display_destroy(display);
 
 out_display:
 	return 0;
